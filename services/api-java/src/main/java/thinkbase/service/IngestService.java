@@ -1,4 +1,4 @@
-package thinkbase.api.service;
+package thinkbase.service;
 
 import org.springframework.stereotype.Service;
 

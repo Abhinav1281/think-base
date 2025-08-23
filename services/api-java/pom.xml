@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ThinkBase</groupId>
@@ -15,7 +15,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.3.0</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath /> <!-- lookup parent from repository -->
     </parent>
 
     <properties>
@@ -23,6 +23,13 @@
     </properties>
 
     <dependencies>
+        
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Spring Boot Web for REST APIs -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -63,14 +70,15 @@
     </dependencies>
 
     <build>
+        <finalName>thinkbase-java</finalName>
         <plugins>
             <!-- Spring Boot Maven Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                <mainClass>thinkbase.api.ThinkBaseApi</mainClass>
-            </configuration>
+                    <mainClass>thinkbase.ThinkBaseApi</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>

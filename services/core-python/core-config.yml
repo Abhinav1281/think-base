@@ -1,0 +1,7 @@
+# services/core-python/config.yml
+app:
+  name: thinkbase-core
+  port: 8000
+
+java_service:
+  base_url: http://api-java:8080

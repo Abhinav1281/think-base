@@ -1,11 +1,11 @@
-package thinkbase.api.controller;
+package thinkbase.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import thinkbase.api.service.IngestService;
+import thinkbase.service.*;
 
 @RestController
 @RequestMapping("/api")
@@ -13,10 +13,17 @@ public class basicController {
 
     @Autowired
     private IngestService ingestService;
+    @Autowired
+    private CoreInteractionService coreInteractionService;
 
     @GetMapping("/health")
-    public String hello() {
-        return "ThinkBase API is UP!";
+    public ResponseEntity<String> healthCheck() {
+        return new ResponseEntity<>("THINKBASE API : OK", HttpStatus.OK);
+    }
+
+    @GetMapping("/core-health")
+    public ResponseEntity<String> coreHealthCheck() {
+        return new ResponseEntity<>(coreInteractionService.getCoreStatus(), HttpStatus.OK);
     }
 
     @PostMapping("/ingest")

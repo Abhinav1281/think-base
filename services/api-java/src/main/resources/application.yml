@@ -1,0 +1,7 @@
+# services/api-java/src/main/resources/application.yml
+server:
+  port: 8080
+
+core:
+  service:
+    base-url: http://core-python:8000  # Will resolve inside Docker

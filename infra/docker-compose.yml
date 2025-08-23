@@ -1,0 +1,16 @@
+services:
+  api-java:
+    build:
+      context: ../services/api-java
+    container_name: api-java
+    ports:
+      - "8080:8080"
+    depends_on:
+      - core-python
+
+  core-python:
+    build:
+      context: ../services/core-python
+    container_name: core-python
+    ports:
+      - "8000:8000"

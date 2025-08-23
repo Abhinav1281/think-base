@@ -1,0 +1,24 @@
+services:
+  api-java:
+    image: maven:3.9.11
+    container_name: api-java-dev
+    working_dir: /app
+    volumes:
+      - ../services/api-java:/app
+      - /root/.m2:/root/.m2  # Maven cache for faster builds
+    ports:
+      - "8080:8080"
+    entrypoint: [""]
+    command: mvn spring-boot:run -Dspring-boot.run.profiles=dev
+    depends_on:
+      - core-python
+
+  core-python:
+    image: python:3.11
+    container_name: core-python-dev
+    working_dir: /app
+    volumes:
+      - ../services/core-python:/app
+    ports:
+      - "8000:8000"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
