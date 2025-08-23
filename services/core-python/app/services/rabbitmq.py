@@ -15,8 +15,8 @@ def start_consumer():
 
     def callback(ch, method, properties, body):
         print(f"Received message : {body}", flush=True)
-        # data = json.loads(body)
-        # print(f"[x] Received: {data}")
+        data = json.loads(body)
+        print(f"[x] Received: {data}",flush=True)
         # TODO: Add chunking + indexing logic here
 
     channel.basic_consume(queue='ingest_queue', on_message_callback=callback, auto_ack=True)

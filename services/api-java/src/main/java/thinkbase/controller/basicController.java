@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import thinkbase.model.IngestionModel;
 import thinkbase.service.*;
 
 @RestController
@@ -27,7 +28,7 @@ public class basicController {
     }
 
     @PostMapping("/ingest")
-    public ResponseEntity<Boolean> ingest(@RequestBody String ingestionBody) {
+    public ResponseEntity<Boolean> ingest(@RequestBody IngestionModel ingestionBody) {
         try {
             return new ResponseEntity<>(ingestService.ingestData(ingestionBody), HttpStatus.OK);
         } catch (Exception e) {
