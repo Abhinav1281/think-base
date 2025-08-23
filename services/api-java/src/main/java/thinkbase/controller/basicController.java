@@ -27,9 +27,9 @@ public class basicController {
     }
 
     @PostMapping("/ingest")
-    public ResponseEntity<Boolean> ingest(@RequestBody String name) {
+    public ResponseEntity<Boolean> ingest(@RequestBody String ingestionBody) {
         try {
-            return new ResponseEntity<>(ingestService.ingestData(name), HttpStatus.OK);
+            return new ResponseEntity<>(ingestService.ingestData(ingestionBody), HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(false, HttpStatus.INTERNAL_SERVER_ERROR);

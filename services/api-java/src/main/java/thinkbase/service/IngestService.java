@@ -4,8 +4,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class IngestService {
-    public boolean ingestData(String name) throws Exception {
-        //ToDo: Implement actual ingestion logic here
+    public boolean ingestData(String data) throws Exception {
+        RabbitMQService.sendMessage(data, "ingest_queue");
         return true;
     }
 }

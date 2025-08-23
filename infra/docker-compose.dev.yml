@@ -1,17 +1,29 @@
 services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672" # RabbitMQ main port
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
   api-java:
     image: maven:3.9.11
     container_name: api-java-dev
     working_dir: /app
     volumes:
       - ../services/api-java:/app
-      - /root/.m2:/root/.m2  # Maven cache for faster builds
+      - /root/.m2:/root/.m2 # Maven cache for faster builds
     ports:
       - "8080:8080"
-    entrypoint: [""]
+    entrypoint: [ "" ]
     command: mvn spring-boot:run -Dspring-boot.run.profiles=dev
     depends_on:
       - core-python
+      - rabbitmq
+    environment:
+      - RABBITMQ_HOST=rabbitmq
 
   core-python:
     image: python:3.11
@@ -21,4 +33,8 @@ services:
       - ../services/core-python:/app
     ports:
       - "8000:8000"
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: sh -c "pip install --no-cache-dir -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    depends_on:
+      - rabbitmq
+    environment:
+      - RABBITMQ_HOST=rabbitmq
