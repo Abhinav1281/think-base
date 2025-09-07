@@ -1,0 +1,6 @@
+spring:
+  profiles: docker
+
+core:
+  service:
+    base-url: http://core-python:8000  # resolves inside Docker network

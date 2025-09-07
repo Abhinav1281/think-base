@@ -1,0 +1,90 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672" # RabbitMQ main port
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+  api-java:
+    image: maven:3.9.11
+    container_name: api-java-dev
+    working_dir: /app
+    volumes:
+      - ../services/api-java:/app
+      - /root/.m2:/root/.m2 # Maven cache for faster builds
+    ports:
+      - "8080:8080"
+    entrypoint: [ "" ]
+    command: mvn spring-boot:run -Dspring-boot.run.profiles=dev
+    depends_on:
+      - core-python
+      - rabbitmq
+      - flyway
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+
+  core-python:
+    image: python:3.11
+    container_name: core-python-dev
+    working_dir: /app
+    volumes:
+      - ../services/core-python:/app
+    ports:
+      - "8000:8000"
+    command: sh -c "pip install --no-cache-dir -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    depends_on:
+      - rabbitmq
+      - flyway
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: reasoningdb
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8000/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  postgres:
+    build: ./db
+    container_name: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: reasoningdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - .././data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d reasoningdb" ]
+      interval: 5s
+      retries: 5
+      start_period: 5s
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - 8081:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+  flyway:
+    image: flyway/flyway:10
+    container_name: flyway
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/reasoningdb
+      FLYWAY_USER: user
+      FLYWAY_PASSWORD: password
+    command: migrate
+    volumes:
+      - ./db/migrations:/flyway/sql
