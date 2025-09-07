@@ -1,8 +1,25 @@
 from fastapi import FastAPI
 from app.services import rabbitmq
+from app.services.Database.db import get_session
 import threading
+from .services.Database.db import get_session
+from sqlalchemy import text
 
-app = FastAPI()
+def startup_event(app: FastAPI):
+    session = get_session()
+    try:
+        result = session.execute(text("SELECT NOW()")).fetchone()
+        print(f"[DB Check] Postgres connection successful! Time: {result[0]}")
+    except Exception as e:
+        print(f"[DB Check] Connection failed: {e}")
+        # Optionally, raise exception to stop the app
+        raise e
+    finally:
+        session.close()
+    threading.Thread(target=run_consumer, daemon=True).start()
+    yield
+    
+app = FastAPI(lifespan=startup_event)
 
 @app.get("/health")
 def health_check():
@@ -16,5 +33,3 @@ def query_data(query):
 
 def run_consumer():
     rabbitmq.start_consumer()
-
-threading.Thread(target=run_consumer, daemon=True).start()

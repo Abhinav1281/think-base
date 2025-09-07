@@ -3,3 +3,5 @@ uvicorn[standard]
 pydantic
 httpx
 pika
+psycopg2-binary
+sqlalchemy

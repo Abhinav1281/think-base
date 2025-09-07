@@ -1,4 +1,5 @@
 import pika, json, os, time
+from .ingest import ingest_message
 
 def start_consumer():
     rabbitmq_host = os.getenv('RABBITMQ_HOST', 'localhost')
@@ -17,8 +18,9 @@ def start_consumer():
         print(f"Received message : {body}", flush=True)
         data = json.loads(body)
         print(f"[x] Received: {data}",flush=True)
-        # TODO: Add chunking + indexing logic here
-
+        ingest_message(data)
+        print(" [x] Done",flush=True)
+        
     channel.basic_consume(queue='ingest_queue', on_message_callback=callback, auto_ack=True)
     print(" [*] Waiting for messages. To exit press CTRL+C")
     channel.start_consuming()
