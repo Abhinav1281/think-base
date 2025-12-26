@@ -1,9 +1,15 @@
-import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 import json
-from datetime import datetime
+import os
+from datetime import datetime, timezone
+
+import importlib
+
+accessories = importlib.import_module(".accessories", package="Accessories")
+logger = accessories.logger
+
 
 # Read from environment or config
 DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -19,8 +25,10 @@ DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NA
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 def get_session():
     return SessionLocal()
+
 
 def log_run(query: str, response: dict, citations: dict, latency_ms: int):
     """
@@ -30,9 +38,9 @@ def log_run(query: str, response: dict, citations: dict, latency_ms: int):
     INSERT INTO runs (query, response, citations, latency_ms, created_at)
     VALUES (:query, :response, :citations, :latency_ms, :created_at)
     """
-    
-    created_at = datetime.utcnow()
-    
+
+    created_at = datetime.now(timezone.utc)
+
     # Use session
     session = get_session()
     try:
@@ -43,12 +51,12 @@ def log_run(query: str, response: dict, citations: dict, latency_ms: int):
                 "response": json.dumps(response),
                 "citations": json.dumps(citations),
                 "latency_ms": latency_ms,
-                "created_at": created_at
-            }
+                "created_at": created_at,
+            },
         )
         session.commit()
     except Exception as e:
         session.rollback()
-        print(f"Error logging run: {e}")
+        logger.info(f"Error logging run: {e}")
     finally:
         session.close()

@@ -8,6 +8,11 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
   api-java:
     image: maven:3.9.11
     container_name: api-java-dev
@@ -25,6 +30,12 @@ services:
       - flyway
     environment:
       - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_QUEUE=ingest_queue
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/api/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   core-python:
     image: python:3.11
@@ -34,22 +45,23 @@ services:
       - ../services/core-python:/app
     ports:
       - "8000:8000"
-    command: sh -c "pip install --no-cache-dir -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    # command: sh -c "pip install --no-cache-dir -r requirements.txt"
+    command: sh -c "pip install --no-cache-dir -r requirements.txt && python app/main.py; tail -f /dev/null"
     depends_on:
-      - rabbitmq
-      - flyway
+      rabbitmq:
+        condition: service_healthy
     environment:
       RABBITMQ_HOST: rabbitmq
+      RABBITMQ_QUEUE: ingest_queue
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: user
       DB_PASSWORD: password
       DB_NAME: reasoningdb
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:8000/health || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    restart: on-failure
+
   postgres:
     build: ./db
     container_name: postgres

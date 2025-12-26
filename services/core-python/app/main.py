@@ -1,35 +1,30 @@
-from fastapi import FastAPI
-from app.services import rabbitmq
-from app.services.Database.db import get_session
-import threading
-from .services.Database.db import get_session
+from Accessories.accessories import logger
+from services.Database.db_services import get_session
 from sqlalchemy import text
 
-def startup_event(app: FastAPI):
+from services import rabbitmq
+
+
+def __run_consumer():
+    rabbitmq.start_consumer()
+
+
+def __startup_event():
     session = get_session()
     try:
         result = session.execute(text("SELECT NOW()")).fetchone()
-        print(f"[DB Check] Postgres connection successful! Time: {result[0]}")
+        logger.info(f"[DB Check] Postgres connection successful! Time: {result[0]}")
+        # Run consumer in the main thread so the process stays alive
+        # Daemon threads won't keep the interpreter running after main exits,
+        # which caused the consumer to be killed immediately.
+        __run_consumer()
     except Exception as e:
-        print(f"[DB Check] Connection failed: {e}")
+        logger.info(f"[DB Check] Connection failed: {e}")
         # Optionally, raise exception to stop the app
         raise e
     finally:
         session.close()
-    threading.Thread(target=run_consumer, daemon=True).start()
-    yield
-    
-app = FastAPI(lifespan=startup_event)
 
-@app.get("/health")
-def health_check():
-    return {"status": "HEALTHY"}
 
-@app.post("/query")
-def query_data(query):
-    # Process the query and return results (this is just a placeholder)
-    results = {"query": query, "results": ["result1", "result2"]}
-    return results
-
-def run_consumer():
-    rabbitmq.start_consumer()
+if __name__ == "__main__":
+    __startup_event()
